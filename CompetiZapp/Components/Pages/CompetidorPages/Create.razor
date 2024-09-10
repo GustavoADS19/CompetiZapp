@@ -1,0 +1,58 @@
+﻿@page "/competidors/create"
+
+@using Microsoft.EntityFrameworkCore
+@using CompetiZapp.Components.Account
+@using Microsoft.AspNetCore.Identity
+@using CompetiZapp.Data
+
+@inject UserManager<ApplicationUser> UserManager
+@inject IdentityUserAccessor UserAccessor
+@inject IdentityRedirectManager RedirectManager
+@inject IDbContextFactory<CompetiZapp.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+
+<PageTitle>Novo Competidor</PageTitle>
+<div class="text-right">
+    <a class="button" href="/competidors">Voltar para a lista</a>
+</div>
+<h4>Novo Competidor</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Competidor" OnValidSubmit="AddCompetidor" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+            <div class="mb-3">
+                <label for="name" class="form-label">Name:</label>
+                <InputText id="name" @bind-Value="Competidor.Nome" class="form-control" />
+                <ValidationMessage For="() => Competidor.Nome" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email:</label>
+                <InputText id="email" @bind-Value="Competidor.Email" class="form-control" />
+                <ValidationMessage For="() => Competidor.Email" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="idade" class="form-label">Idade:</label>
+                <InputNumber id="idade" @bind-Value="Competidor.Idade" class="form-control" />
+                <ValidationMessage For="() => Competidor.Idade" class="text-danger" />
+            </div>
+            <button type="submit" class="btn btn-primary">Adicionar</button>
+        </EditForm>
+    </div>
+</div>
+@code {
+
+    [SupplyParameterFromForm]
+    public Competidor Competidor { get; set; } = new();
+
+    public async Task AddCompetidor()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Competidor.Add(Competidor);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/competidors");
+    }
+}

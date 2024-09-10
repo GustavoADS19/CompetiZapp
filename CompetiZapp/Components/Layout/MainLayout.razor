@@ -1,0 +1,27 @@
+﻿@inherits LayoutComponentBase
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+            @*<a class="button" href="https://learn.microsoft.com/aspnet/core/" target="_blank">Sobre</a>*@
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+
+    <div style="text-align: center; position:fixed; bottom:0; left:0; width:100%; height: fit-content; background-color:#e9e9e9">
+            <p style="margin: 0px;";">&copy; 2024 Gustavo Araujo. Todos os direitos reservados.</p>
+    </div>
+</div>
+
+<div id="blazor-error-ui">
+    Ocorreu um erro.
+    <a href="" class="reload">Recarregar</a>
+    <a class="dismiss">🗙</a>
+</div>

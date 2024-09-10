@@ -1,0 +1,64 @@
+﻿@page "/Account/Manage/Disable2fa"
+
+@using Microsoft.AspNetCore.Identity
+@using CompetiZapp.Data
+
+@inject UserManager<ApplicationUser> UserManager
+@inject IdentityUserAccessor UserAccessor
+@inject IdentityRedirectManager RedirectManager
+@inject ILogger<Disable2fa> Logger
+
+<PageTitle>Desabilitar autenticação de dois fatores (2FA)</PageTitle>
+
+<StatusMessage />
+<h3>Desabilitar autenticação de dois fatores (2FA)</h3>
+
+<div class="alert alert-warning" role="alert">
+    <p>
+        <strong>Essa ação apenas desabilita a autenticação de dois fatores.</strong>
+    </p>
+    <p>
+        Desabilitar o 2FA não altera as chaves utilizadas em seu aplicativo de autenticação, se você deseja alterar suas chaves você deve
+        <a href="Account/Manage/ResetAuthenticator">resetar suas chaves do autenticador.</a>
+    </p>
+</div>
+
+<div>
+    <form @formname="disable-2fa" @onsubmit="OnSubmitAsync" method="post">
+        <AntiforgeryToken />
+        <button class="btn btn-danger" type="submit">Disable 2FA</button>
+    </form>
+</div>
+
+@code {
+    private ApplicationUser user = default!;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+
+        if (HttpMethods.IsGet(HttpContext.Request.Method) && !await UserManager.GetTwoFactorEnabledAsync(user))
+        {
+            throw new InvalidOperationException("Não foi possível desabilitar a autenticação de dois fatores, visto que a mesma não está habilitada.");
+        }
+    }
+
+    private async Task OnSubmitAsync()
+    {
+        var disable2faResult = await UserManager.SetTwoFactorEnabledAsync(user, false);
+        if (!disable2faResult.Succeeded)
+        {
+            throw new InvalidOperationException("Um erro inesperado ocorreu ao desabilitar o 2FA.");
+        }
+
+        var userId = await UserManager.GetUserIdAsync(user);
+        Logger.LogInformation("O usuário com o Id '{UserId}' desabilitou o 2FA.", userId);
+        RedirectManager.RedirectToWithStatus(
+            "Account/Manage/TwoFactorAuthentication",
+            "O 2fa foi desabilitado, você pode reabilita-lo quando configurar seu aplicativo autenticador",
+            HttpContext);
+    }
+}

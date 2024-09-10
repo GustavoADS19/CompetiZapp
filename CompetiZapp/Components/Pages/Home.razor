@@ -1,0 +1,52 @@
+﻿@page "/"
+
+<PageTitle>Inicio</PageTitle>
+
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using CompetiZapp.Data
+@inject IDbContextFactory<CompetiZapp.Data.ApplicationDbContext> DbFactory
+@rendermode InteractiveServer
+
+@implements IAsyncDisposable
+
+<div class="row">
+    <div class="col-md-6 content-box">
+        <div class="content-box-title">
+            <h1>Competidores</h1>
+        </div>
+        <AuthorizeView>
+            <Authorized>
+                <br />
+                <p class="text-right">
+                    <a class="button" href="competidors">Visualizar competidores</a>
+                </p>
+            </Authorized>
+        </AuthorizeView>
+
+        <QuickGrid Class="table table-bordered table-striped table-sm table-hover" Items="items" Pagination="pagination">
+            <PropertyColumn Property="competidor => competidor.Nome" Sortable="true" />
+            <PropertyColumn Property="competidor => competidor.Email" />
+            <PropertyColumn Property="competidor => competidor.Idade" />
+        </QuickGrid>
+        <Paginator State="pagination" />
+
+    </div>
+</div>
+
+@code {
+    ApplicationDbContext context = default!;
+    IQueryable<Competidor>? items;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+        items = context.Competidor.AsQueryable();
+    }
+
+    PaginationState pagination = new PaginationState { ItemsPerPage = 5 };
+    string nameFilter = string.Empty;
+
+    IQueryable<Competidor>? FilteredItems => items?.Where(x => x.Nome.Contains(nameFilter, StringComparison.CurrentCultureIgnoreCase));
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

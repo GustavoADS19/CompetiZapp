@@ -1,0 +1,57 @@
+﻿@page "/competidors/details"
+
+@using Microsoft.EntityFrameworkCore
+@using CompetiZapp.Data
+@inject IDbContextFactory<CompetiZapp.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Detalhes</PageTitle>
+
+<div class="text-right">
+    <a class="button" href="/competidors">Voltar para a lista</a>
+</div>
+<h1>Detalhes</h1>
+
+<div>
+    <h4>Competidor</h4>
+    <hr />
+    @if (competidor is null)
+    {
+        <p><em>Carregando...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Nome</dt>
+            <dd class="col-sm-10">@competidor.Nome</dd>
+            <dt class="col-sm-2">Email</dt>
+            <dd class="col-sm-10">@competidor.Email</dd>
+            <dt class="col-sm-2">Idade</dt>
+            <dd class="col-sm-10">@competidor.Idade</dd>
+        </dl>
+        <div>
+            <AuthorizeView Policy="AdminOnly">
+                <Authorized>
+                    <a class="button" href="@($"/competidors/edit?id={competidor.Id}")">Editar</a>
+                </Authorized>
+            </AuthorizeView>
+            </div>
+            }
+        </div>
+
+@code {
+    Competidor? competidor;
+
+    [SupplyParameterFromQuery]
+    public Guid Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        competidor = await context.Competidor.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (competidor is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

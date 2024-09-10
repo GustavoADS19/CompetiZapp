@@ -1,0 +1,75 @@
+﻿@page "/competidors"
+
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Microsoft.AspNetCore.Identity
+@using CompetiZapp.Components.Account
+@using CompetiZapp.Data
+
+@inject UserManager<ApplicationUser> UserManager
+@inject IdentityUserAccessor UserAccessor
+@inject IdentityRedirectManager RedirectManager
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize()]
+
+@inject IDbContextFactory<CompetiZapp.Data.ApplicationDbContext> DbFactory
+
+
+@implements IAsyncDisposable
+
+<PageTitle>Competidores</PageTitle>
+
+<div class="content-box">
+    <div class="content-box-title">
+        <h1>Competidores</h1>
+    </div>
+    <AuthorizeView Policy="AdminOnly">
+        <Authorized>
+            <br />
+            <p class="text-right">
+                <a class="button" href="competidors/create">Novo</a>
+            </p>
+        </Authorized>
+    </AuthorizeView>
+
+
+    <QuickGrid Class="table table-bordered table-striped table-sm table-hover" Items="items" Pagination="pagination">
+        <PropertyColumn Property="competidor => competidor.Nome" Sortable="true" />
+        <PropertyColumn Property="competidor => competidor.Email" />
+        <PropertyColumn Property="competidor => competidor.Idade" />
+
+        <TemplateColumn Context="competidor">
+            <AuthorizeView Policy="AdminOnly">
+                <Authorized>
+                    <a class="button" href="@($"competidors/edit?id={competidor.Id}")">Editar</a>
+                </Authorized>
+            </AuthorizeView>
+            <a class="button" href="@($"competidors/details?id={competidor.Id}")">Detalhes</a>
+            <AuthorizeView Policy="AdminOnly">
+                <Authorized>
+                    <a class="button" href="@($"competidors/delete?id={competidor.Id}")">Deletar</a>
+                </Authorized>
+            </AuthorizeView>
+        </TemplateColumn>
+    </QuickGrid>
+    <Paginator State="pagination" />
+
+</div>
+
+@code {
+    ApplicationDbContext context = default!;
+    IQueryable<Competidor>? items;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+        items = context.Competidor.AsQueryable();
+    }
+
+    PaginationState pagination = new PaginationState { ItemsPerPage = 25 };
+    string nameFilter = string.Empty;
+
+    IQueryable<Competidor>? FilteredItems => items?.Where(x => x.Nome.Contains(nameFilter, StringComparison.CurrentCultureIgnoreCase));
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

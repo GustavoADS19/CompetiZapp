@@ -1,0 +1,105 @@
+﻿@page "/Competidors/edit"
+
+@using Microsoft.EntityFrameworkCore
+@using CompetiZapp.Components.Account
+@using Microsoft.AspNetCore.Identity
+@using CompetiZapp.Data
+
+@inject UserManager<ApplicationUser> UserManager
+@inject IdentityUserAccessor UserAccessor
+@inject IdentityRedirectManager RedirectManager
+@inject NavigationManager NavigationManager
+
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@inject IDbContextFactory<CompetiZapp.Data.ApplicationDbContext> DbFactory
+
+<PageTitle>Editar</PageTitle>
+
+<div class="text-right">
+    <a class="button" href="/competidors">Voltar para a lista</a>
+</div>
+<h4>Editar Competidor</h4>
+<hr />
+@if (Competidor is null)
+{
+    <p><em>Carregando...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Competidor" OnValidSubmit="UpdateCompetidor" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <input type="hidden" name="Competidor.Id" value="@Competidor.Id" />
+                <div class="mb-3">
+                    <label for="name" class="form-label">Nome:</label>
+                    <InputText id="name" @bind-Value="Competidor.Nome" class="form-control" />
+                    <ValidationMessage For="() => Competidor.Nome" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email:</label>
+                    <InputText id="email" @bind-Value="Competidor.Email" class="form-control" />
+                    <ValidationMessage For="() => Competidor.Email" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="idade" class="form-label">Idade:</label>
+                    <InputNumber id="idade" @bind-Value="Competidor.Idade" class="form-control" />
+                    <ValidationMessage For="() => Competidor.Idade" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Salvar</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+
+
+@code {
+    [SupplyParameterFromQuery]
+    public Guid Id { get; set; }
+
+    [SupplyParameterFromForm]
+    public Competidor? Competidor { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Competidor ??= await context.Competidor.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Competidor is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    public async Task UpdateCompetidor()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(Competidor!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!CompetidorExists(Competidor!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/competidors");
+    }
+
+    bool CompetidorExists(Guid id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Competidor.Any(e => e.Id == id);
+    }
+}
