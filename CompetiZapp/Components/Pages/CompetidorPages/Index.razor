@@ -33,7 +33,7 @@
     </AuthorizeView>
 
 
-    <QuickGrid Class="table table-bordered table-striped table-sm table-hover" Items="items" Pagination="pagination">
+    <QuickGrid Class="table table-bordered table-striped table-sm table-hover" Items="competidores" Pagination="pagination">
         <PropertyColumn Property="competidor => competidor.Nome" Sortable="true" />
         <PropertyColumn Property="competidor => competidor.Email" />
         <PropertyColumn Property="competidor => competidor.Idade" />
@@ -58,18 +58,18 @@
 
 @code {
     ApplicationDbContext context = default!;
-    IQueryable<Competidor>? items;
+    IQueryable<Competidor>? competidores;
 
     protected override void OnInitialized()
     {
         context = DbFactory.CreateDbContext();
-        items = context.Competidor.AsQueryable();
+        competidores = context.Competidor.AsQueryable();
     }
 
     PaginationState pagination = new PaginationState { ItemsPerPage = 25 };
     string nameFilter = string.Empty;
 
-    IQueryable<Competidor>? FilteredItems => items?.Where(x => x.Nome.Contains(nameFilter, StringComparison.CurrentCultureIgnoreCase));
+    IQueryable<Competidor>? FilteredCompetidores => competidores?.Where(x => x.Nome.Contains(nameFilter, StringComparison.CurrentCultureIgnoreCase));
 
     public async ValueTask DisposeAsync() => await context.DisposeAsync();
 }

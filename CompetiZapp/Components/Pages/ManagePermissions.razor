@@ -1,0 +1,74 @@
+﻿@page "/ManagePermissions"
+
+<PageTitle>Gerenciar Permissões</PageTitle>
+
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using CompetiZapp.Data
+@inject AuthenticationStateProvider GetAuthenticationStateAsync
+
+@inject NavigationManager Navigation
+@inject IDbContextFactory<CompetiZapp.Data.ApplicationDbContext> DbFactory
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
+@rendermode InteractiveServer
+
+@implements IAsyncDisposable
+
+<div class="content-box">
+    <div class="content-box-title">
+        <h1>Usuários</h1>
+    </div>
+
+    <QuickGrid Class="table table-bordered table-striped table-sm table-hover" Items="items" Pagination="pagination">
+        <PropertyColumn Title="Nome" Property="user => user.UserName" Sortable="true" />
+        <PropertyColumn Title="Email" Property="user => user.Email" />
+        <PropertyColumn Title="Função" Property='user => context.UserRoles.Any(e => e.UserId == user.Id) ? context.Roles.FirstOrDefault(r => r.Id == context.UserRoles.FirstOrDefault(e => e.UserId == user.Id).RoleId).Name : "Nenhum"' />
+        <TemplateColumn Context="user">
+            <button class="btn btn-primary btn-sm" @onclick="() => TransformIntoAdmin(user.Id)">Alternar status de administrador</button>
+        </TemplateColumn>
+    </QuickGrid>
+    <Paginator State="pagination" />
+
+</div>
+
+@code {
+    ApplicationDbContext context = default!;
+    IQueryable<ApplicationUser>? items;
+    Guid? currentUserId = null;
+
+    async Task<string> getUserId()
+    {
+        var user = (await GetAuthenticationStateAsync.GetAuthenticationStateAsync()).User;
+        var UserId = user.FindFirst(u => u.Type.Contains("nameidentifier"))?.Value;
+        return UserId;
+    }
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+        string userId = getUserId().Result;
+        items = context.Users.Where(e => e.Id != userId).AsQueryable();
+    }
+
+    private void TransformIntoAdmin(string id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        var userRole = context.UserRoles.Where(e => e.UserId == id).FirstOrDefault();
+        if (userRole == null)
+        {
+            var roleId = context.Roles.FirstOrDefault().Id;
+            var role = new Microsoft.AspNetCore.Identity.IdentityUserRole<string>() { UserId = id, RoleId = roleId };
+            context.UserRoles.Add(role);
+            context.SaveChanges();
+        }
+        else
+        {
+            context.UserRoles.Remove(userRole);
+            context.SaveChanges();
+        }
+    }
+    PaginationState pagination = new PaginationState { ItemsPerPage = 25 };
+    string nameFilter = string.Empty;
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}
