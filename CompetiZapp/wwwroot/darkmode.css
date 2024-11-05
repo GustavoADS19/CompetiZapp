@@ -1,0 +1,30 @@
+﻿:root {
+    --bs-body-bg: #242424;*/
+    --bs-body-color: #fff;
+}
+
+.table {
+    --bs-table-striped-bg: #4d4d4d;
+    --bs-table-striped-color: #fff;
+    --bs-table-bg: #242424;
+    --bs-table-hover-color: #999999;
+    color: #fff;
+}
+.col-title-text {
+    color: #fff;
+}
+main {
+    background-color: #0a0a0a;
+}
+
+.content-box-title {
+    background-color: #0a0a0a;
+}
+
+.button {
+    background-color: #4d4d4d;
+    color: #fff;
+}
+.button:hover {
+    color: #999999;
+}

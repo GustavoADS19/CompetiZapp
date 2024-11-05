@@ -1,0 +1,64 @@
+﻿@page "/campeonatos"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using CompetiZapp.Data
+@using CompetiZapp.Data
+@implements IAsyncDisposable
+@inject IDbContextFactory<CompetiZapp.Data.ApplicationDbContext> DbFactory
+
+<PageTitle>Campeonatos</PageTitle>
+
+<div class="content-box">
+    <div class="content-box-title">
+        <h1>Campeonatos</h1>
+    </div>
+    <AuthorizeView Policy="AdminOnly">
+        <Authorized>
+            <br />
+            <p class="text-right">
+                <a class="button" href="campeonatos/create">Novo</a>
+            </p>
+        </Authorized>
+    </AuthorizeView>
+
+
+    <QuickGrid Class="table table-bordered table-striped table-sm table-hover" Items="campeonatos" Pagination="pagination">
+        <PropertyColumn Property="campeonatos => campeonatos.Nome" Sortable="true" />
+        <PropertyColumn Property="campeonatos => campeonatos.Descricao" />
+        <PropertyColumn Property="campeonatos => campeonatos.Local" />
+        <PropertyColumn Property="campeonatos => campeonatos.Premio" />
+
+        <TemplateColumn Context="competidor">
+            <AuthorizeView Policy="AdminOnly">
+                <Authorized>
+                    <a class="button" href="@($"campeonatos/edit?id={competidor.Id}")">Editar</a>
+                </Authorized>
+            </AuthorizeView>
+            <a class="button" href="@($"campeonatos/details?id={competidor.Id}")">Detalhes</a>
+            <AuthorizeView Policy="AdminOnly">
+                <Authorized>
+                    <a class="button" href="@($"campeonatos/delete?id={competidor.Id}")">Deletar</a>
+                </Authorized>
+            </AuthorizeView>
+        </TemplateColumn>
+    </QuickGrid>
+    <Paginator State="pagination" />
+</div>
+
+@code {
+    ApplicationDbContext context = default!;
+    IQueryable<Campeonato>? campeonatos;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+        campeonatos = context.Campeonato.AsQueryable();
+    }
+
+    PaginationState pagination = new PaginationState { ItemsPerPage = 25 };
+    string nameFilter = string.Empty;
+
+    IQueryable<Campeonato>? FilteredCompetidores => campeonatos?.Where(x => x.Nome.Contains(nameFilter, StringComparison.CurrentCultureIgnoreCase));
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

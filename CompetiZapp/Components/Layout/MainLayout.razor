@@ -1,5 +1,16 @@
 ﻿@inherits LayoutComponentBase
 
+@using Microsoft.EntityFrameworkCore
+@using CompetiZapp.Data
+@inject AuthenticationStateProvider GetAuthenticationStateAsync
+@inject IDbContextFactory<CompetiZapp.Data.ApplicationDbContext> DbFactory
+<HeadContent>
+    @if (isDarkMode)
+    {
+        <link rel="stylesheet" id="etst" href="darkmode.css">
+    }
+</HeadContent>
+
 <div class="page">
     <div class="sidebar">
         <NavMenu />
@@ -9,14 +20,13 @@
         <div class="top-row px-4">
             @*<a class="button" href="https://learn.microsoft.com/aspnet/core/" target="_blank">Sobre</a>*@
         </div>
-
         <article class="content px-4">
             @Body
         </article>
     </main>
 
     <div style="text-align: center; position:fixed; bottom:0; left:0; width:100%; height: fit-content; background-color:#e9e9e9">
-            <p style="margin: 0px;";">&copy; 2024 Gustavo Araujo. Todos os direitos reservados.</p>
+        <p style="margin: 0px;">&copy; 2024 Gustavo Araujo. Todos os direitos reservados.</p>
     </div>
 </div>
 
@@ -25,3 +35,24 @@
     <a href="" class="reload">Recarregar</a>
     <a class="dismiss">🗙</a>
 </div>
+@code{
+    public bool isDarkMode = false;
+    ApplicationDbContext context = default!;
+
+    async Task<string> getUserId()
+    {
+        var user = (await GetAuthenticationStateAsync.GetAuthenticationStateAsync()).User;
+        var UserId = user.FindFirst(u => u.Type.Contains("nameidentifier"))?.Value;
+        return UserId;
+    }
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+        string userId = getUserId().Result;
+        if (userId is not null)
+        {
+            isDarkMode = context.Users.FirstOrDefault(e => e.Id == userId).UseDarkMode;
+        }
+    }
+}

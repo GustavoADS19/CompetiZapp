@@ -1,0 +1,66 @@
+﻿@page "/campeonatos/delete"
+@using Microsoft.EntityFrameworkCore
+@using CompetiZapp.Data
+@inject IDbContextFactory<CompetiZapp.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Deletar</PageTitle>
+<div class="text-right">
+    <a class="button" href="/campeonatos">Voltar para a lista</a>
+</div>
+<h3>Tem certeza que deseja deletar o campeonato?</h3>
+<div>
+    <hr />
+    @if (campeonato is null)
+    {
+        <p><em>Carregando...</em></p>
+    }
+    else
+    {
+        <dl class="row">
+            <dt class="col-sm-2">Nome</dt>
+            <dd class="col-sm-10">@campeonato.Nome</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Descricao</dt>
+            <dd class="col-sm-10">@campeonato.Descricao</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Local</dt>
+            <dd class="col-sm-10">@campeonato.Local</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Premio</dt>
+            <dd class="col-sm-10">@campeonato.Premio</dd>
+        </dl>
+        <EditForm method="post" Model="campeonato" OnValidSubmit="DeleteCampeonato" FormName="delete" Enhance>
+            <button type="submit" class="btn btn-danger" disabled="@(campeonato is null)">Deletar</button> 
+        </EditForm>
+    }
+</div>
+
+@code {
+    private Campeonato? campeonato;
+
+    [SupplyParameterFromQuery]
+    private Guid Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        campeonato = await context.Campeonato.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (campeonato is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    private async Task DeleteCampeonato()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Campeonato.Remove(campeonato!);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/campeonatos");
+    }
+}

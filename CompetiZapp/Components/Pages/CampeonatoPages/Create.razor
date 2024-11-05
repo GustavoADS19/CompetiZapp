@@ -1,0 +1,56 @@
+﻿@page "/campeonatos/create"
+@using Microsoft.EntityFrameworkCore
+@using CompetiZapp.Data
+@inject IDbContextFactory<CompetiZapp.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create</PageTitle>
+
+<div class="text-right">
+    <a class="button" href="/campeonatos">Voltar para a lista</a>
+</div>
+<h4>Novo Campeonato</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Campeonato" OnValidSubmit="AddCampeonato" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+            <div class="mb-3">
+                <label for="nome" class="form-label">Nome:</label>
+                <InputText id="nome" @bind-Value="Campeonato.Nome" class="form-control" />
+                <ValidationMessage For="() => Campeonato.Nome" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="descricao" class="form-label">Descricao:</label>
+                <InputText id="descricao" @bind-Value="Campeonato.Descricao" class="form-control" />
+                <ValidationMessage For="() => Campeonato.Descricao" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="local" class="form-label">Local:</label>
+                <InputText id="local" @bind-Value="Campeonato.Local" class="form-control" />
+                <ValidationMessage For="() => Campeonato.Local" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="premio" class="form-label">Premio:</label>
+                <InputText id="premio" @bind-Value="Campeonato.Premio" class="form-control" />
+                <ValidationMessage For="() => Campeonato.Premio" class="text-danger" />
+            </div>
+            <button type="submit" class="btn btn-primary">Criar</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Campeonato Campeonato { get; set; } = new();
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddCampeonato()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Campeonato.Add(Campeonato);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/campeonatos");
+    }
+}

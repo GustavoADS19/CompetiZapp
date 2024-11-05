@@ -1,0 +1,100 @@
+﻿@page "/campeonatos/edit"
+@using Microsoft.EntityFrameworkCore
+@using CompetiZapp.Data
+@inject IDbContextFactory<CompetiZapp.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+<div class="text-right">
+    <a class="button" href="/campeonatos">Voltar para a lista</a>
+</div>
+<h1>Detalhes</h1>
+
+@if (Campeonato is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Campeonato" OnValidSubmit="UpdateCampeonato" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <input type="hidden" name="Campeonato.Id" value="@Campeonato.Id" />
+                <div class="mb-3">
+                    <label for="nome" class="form-label">Nome:</label>
+                    <InputText id="nome" @bind-Value="Campeonato.Nome" class="form-control" />
+                    <ValidationMessage For="() => Campeonato.Nome" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="descricao" class="form-label">Descricao:</label>
+                    <InputText id="descricao" @bind-Value="Campeonato.Descricao" class="form-control" />
+                    <ValidationMessage For="() => Campeonato.Descricao" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="local" class="form-label">Local:</label>
+                    <InputText id="local" @bind-Value="Campeonato.Local" class="form-control" />
+                    <ValidationMessage For="() => Campeonato.Local" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="premio" class="form-label">Premio:</label>
+                    <InputText id="premio" @bind-Value="Campeonato.Premio" class="form-control" />
+                    <ValidationMessage For="() => Campeonato.Premio" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Salvar</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [SupplyParameterFromQuery]
+    private Guid Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private Campeonato? Campeonato { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Campeonato ??= await context.Campeonato.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Campeonato is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdateCampeonato()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(Campeonato!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!CampeonatoExists(Campeonato!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/campeonatos");
+    }
+
+    private bool CampeonatoExists(Guid id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Campeonato.Any(e => e.Id == id);
+    }
+}

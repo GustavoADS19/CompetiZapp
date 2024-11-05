@@ -1,0 +1,59 @@
+﻿@page "/campeonatos/details"
+@using Microsoft.EntityFrameworkCore
+@using CompetiZapp.Data
+@inject IDbContextFactory<CompetiZapp.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Details</PageTitle>
+<div class="text-right">
+    <a class="button" href="/campeonatos">Voltar para a lista</a>
+</div>
+<h1>Detalhes</h1>
+
+<div>
+    <h2>Campeonato</h2>
+    <hr />
+    @if (campeonato is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        <dl class="row">
+            <dt class="col-sm-2">Nome</dt>
+            <dd class="col-sm-10">@campeonato.Nome</dd>
+            <dt class="col-sm-2">Descricao</dt>
+            <dd class="col-sm-10">@campeonato.Descricao</dd>
+            <dt class="col-sm-2">Local</dt>
+            <dd class="col-sm-10">@campeonato.Local</dd>
+            <dt class="col-sm-2">Premio</dt>
+            <dd class="col-sm-10">@campeonato.Premio</dd>
+        </dl>
+        <div>
+            <AuthorizeView Policy="AdminOnly">
+                <Authorized>
+                    <a class="button" href="@($"/competidors/edit?id={campeonato.Id}")">Editar</a>
+                </Authorized>
+            </AuthorizeView>
+        </div>
+    }
+</div>
+    
+
+@code {
+    private Campeonato? campeonato;
+
+    [SupplyParameterFromQuery]
+    private Guid Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        campeonato = await context.Campeonato.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (campeonato is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

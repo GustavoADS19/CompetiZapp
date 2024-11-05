@@ -28,6 +28,11 @@
                 <label for="phone-number" class="form-label">Número de telefone</label>
                 <ValidationMessage For="() => Input.PhoneNumber" class="text-danger" />
             </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.PhoneNumber" class="form-control" placeholder="Por favor, digite um número de telefone" />
+                <label for="phone-number" class="form-label">Número de telefone</label>
+                <ValidationMessage For="() => Input.PhoneNumber" class="text-danger" />
+            </div>
             <button type="submit" class="w-100 btn btn-lg btn-primary">Salvar</button>
         </EditForm>
     </div>

@@ -99,9 +99,5 @@ article {
     margin: 15px;
     border-radius: 5px 5px;
     height: 100vh;
-    background-color: white;
-}
-
-main {
-    background-color: #e9e9e9;
+    background-color: var(--bs-body-bg);
 }
